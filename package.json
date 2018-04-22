@@ -1,0 +1,17 @@
+{
+  "name": "driver-hass",
+  "main": "index.js",
+  "files": [
+    "package.json",
+    "index.js"
+  ],
+  "dependencies": {
+    "co-foreach": "^1.1.1",
+    "color-convert": "^1.9.1",
+    "homeassistant": "^0.1.4"
+  },
+  "version": "1.0.0",
+  "description": "homeassistant driver for rokid",
+  "author": "SchumyHao",
+  "license": "ISC"
+}
