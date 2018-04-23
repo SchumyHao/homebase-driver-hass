@@ -48,7 +48,7 @@ function do_test_cmd(acc, prop, name, val) {
         })
     }
   } else {
-    return Promise.reject(new Error(`${acc.deviceId} not support ${prop}.${name}`))
+    console.error(`${acc.deviceId} not support ${prop}.${name}`);
   }
 }
 
@@ -130,7 +130,7 @@ function ac_test(acc) {
       return do_test_cmd(acc, 'humidity', 'num', 100);
     })
     .then(() => {
-      console.log("ac test done.")
+      console.log("ac test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
@@ -144,13 +144,13 @@ function cleanbot_test(acc) {
       return do_test_cmd(acc, 'switch', 'stop');
     })
     .then(() => {
-      console.log("cleanbot test done.")
+      console.log("cleanbot test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
 
 function curtain_test(acc) {
-  return do_test_cmd(acc, 'switch', 'off');
+  return do_test_cmd(acc, 'switch', 'off')
     .then(() => {
       return do_test_cmd(acc, 'switch', 'on');
     })
@@ -179,7 +179,7 @@ function curtain_test(acc) {
       return do_test_cmd(acc, 'position', 'up');
     })
     .then(() => {
-      console.log("curtain test done.")
+      console.log("curtain test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
@@ -190,7 +190,7 @@ function door_test(acc) {
       return do_test_cmd(acc, 'switch', 'on');
     })
     .then(() => {
-      console.log("door test done.")
+      console.log("door test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
@@ -225,7 +225,7 @@ function fan_test(acc) {
       return do_test_cmd(acc, 'fanspeed', 'up');
     })
     .then(() => {
-      console.log("fan test done.")
+      console.log("fan test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
@@ -281,7 +281,7 @@ function light_test(acc) {
       return do_test_cmd(acc, 'color_temperature', 'num', 50);
     })
     .then(() => {
-      console.log("light test done.")
+      console.log("light test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
@@ -292,7 +292,7 @@ function switch_test(acc) {
       return do_test_cmd(acc, 'switch', 'on');
     })
     .then(() => {
-      console.log("switch test done.")
+      console.log("switch test done.", acc.deviceId);
     })
     .catch(err=>console.log(err))
 }
