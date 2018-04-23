@@ -82,29 +82,28 @@ module.exports = function () {
     console.log("%s excute with action: ", accessory.deviceId, action);
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
-      console.log("Execute hass_climate.")
+      console.log("Execute hass_climate.");
       return hass_climate.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'cleanBot') {
-      console.log("Execute hass_vacuum.")
+      console.log("Execute hass_vacuum.");
       return hass_vacuum.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'curtain') {
-      console.log("Execute hass_cover.")
+      console.log("Execute hass_cover.");
       return hass_cover.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'door') {
-      console.log("Execute hass_lock.")
+      console.log("Execute hass_lock.");
       return hass_lock.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'fan') {
-      console.log("Execute hass_fan.")
+      console.log("Execute hass_fan.");
       return hass_fan.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'light') {
-      console.log("Execute hass_light.")
+      console.log("Execute hass_light.");
       return hass_light.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'switch') {
-      console.log("Execute hass_switch.")
+      console.log("Execute hass_switch.");
       return hass_switch.execute(hass, accessory.deviceInfo, action);
     } else {
-      console.error("%s type is not supported yet.", type);
-      return Promise.reject(new Error("not support"));
+      return Promise.reject(new Error(`${type} type is not supported yet.`));
     }
   }
 
