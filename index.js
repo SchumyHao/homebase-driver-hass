@@ -7,12 +7,15 @@ var hass_fan = require('./lib/HassFan');
 var hass_light = require('./lib/HassLight');
 var hass_switch = require('./lib/HassSwitch');
 
+var hassurl;
+var hasspasswd;
+
 module.exports = function () {
   var accessories = [];
 
   function hass_login(userAuth) {
-    var url = userAuth.userId;
-    var passwd = userAuth.userToken;
+    var url = userAuth.userId || hassurl;
+    var passwd = userAuth.userToken || hasspasswd;
     var para = {};
 
     para.https = (url.indexOf('https') === 0);
@@ -207,6 +210,30 @@ module.exports = function () {
         .catch(err => {
           console.error("Excute %s error: %s", action.property, err);
         })
+    },
+
+    command: function(command, params) {
+      if (command === 'login') {
+        hassurl = params.username;
+        hasspasswd = params.password;
+        hass_login({userId: hassurl, userToken: hasspasswd});
+
+        return hass.states.list()
+          .then(entities_state => {
+            if (entities_state === "404: Not Found")
+              return Promise.reject(new Error(`username or passwd error`));
+            else
+              return Promise.resolve()
+                .then(() => {
+                  return {"userId": hassurl, "userToken": hasspasswd};
+                })
+          })
+          .catch(err => {
+            return Promise.reject(new Error("Get hass entities states error: ", err));
+          })
+      } else {
+        return Promise.reject(new Error(`command ${command} not support.`))
+      }
     }
   }
 };
