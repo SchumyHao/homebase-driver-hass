@@ -2,7 +2,7 @@
   "name": "driver-hass",
   "main": "index.js",
   "files": [
-    "package.json",
+    "lib",
     "index.js"
   ],
   "dependencies": {},
