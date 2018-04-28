@@ -178,38 +178,55 @@ module.exports = function () {
     execute: function(device, action) {
       hass_login(device.userAuth);
 
-      var accessory = find_accessory(device.deviceId);
-
-      if (!accessory) {
-        console.error("Could not find accessory %s in accessories.", device.deviceId);
-        return Promise.reject(new Error("no device"));
-      }
-      if (!accessory.actions[action.property]) {
-        console.error("%s is not supported by %s.", action.property, accessory.deviceId);
-        return Promise.reject(new Error("not support"));
-      }
-      return accessory_execute(accessory, action, hass)
+      return Promise.resolve()
         .then(() => {
-          return accessory_get_states(accessory, hass)
-        })
-        .then(states => {
-          var ret = {};
-          var val = states[action.property];
-
-          ret.property = action.property;
-          if (typeof val === 'number') {
-            ret.name = 'num';
-            ret.value = val;
+          if (accessories.length > 0) {
+            return Promise.resolve();
           } else {
-            ret.name = states[action.property];
-          }
+            console.log("Accessories are empty, list them first.")
 
-          console.log(ret);
-          return ret;
-        })
-        .catch(err => {
-          console.error("Excute %s error: %s", action.property, err);
-        })
+            return hass.states.list()
+              .then(entities_state => {
+                if (entities_state === "404: Not Found")
+                  return Promise.reject(new Error("404: Not Found"));
+                transform_hass_entities(entities_state);
+              })
+            }
+          })
+        .then(() => {
+          var accessory = find_accessory(device.deviceId);
+
+          if (!accessory) {
+            console.error("Could not find accessory %s in accessories.", device.deviceId);
+            return Promise.reject(new Error("no device"));
+          }
+          if (!accessory.actions[action.property]) {
+            console.error("%s is not supported by %s.", action.property, accessory.deviceId);
+            return Promise.reject(new Error("not support"));
+          }
+          return accessory_execute(accessory, action, hass)
+            .then(() => {
+              return accessory_get_states(accessory, hass)
+            })
+            .then(states => {
+              var ret = {};
+              var val = states[action.property];
+
+              ret.property = action.property;
+              if (typeof val === 'number') {
+                ret.name = 'num';
+                ret.value = val;
+              } else {
+                ret.name = states[action.property];
+              }
+
+              console.log(ret);
+              return ret;
+            })
+            .catch(err => {
+              console.error("Excute %s error: %s", action.property, err);
+            })
+          })
     },
 
     command: function(command, params) {
