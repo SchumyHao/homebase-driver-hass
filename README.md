@@ -2,12 +2,12 @@
 此插件将Homeassistant智能家居开源平台中的设备加入到Rokid家庭中, 使用者可以方便的通过Rokid使用语音来控制自己Homeassistant平台中已经接入的设备.    
 
 此插件由HASSmart老妖提供.
-如有问题, 可在瀚思彼岸<https://bbs.hassbian.com/forum.php>Homeassistant中文第一技术论坛发帖反馈.
+如有问题, 可在瀚思彼岸<https://bbs.hassbian.com/forum.php> Homeassistant中文第一技术论坛发帖反馈.
 
 ## 使用帮助
 - 绑定HASSmart插件.
 - 确认Hass已经在运行且可以访问到.
-- 在登录界面中输入Hass的地址和Hass登录密码. 如无密码登录, 密码栏请留空. 参考下面的例子
+- 在登录界面中输入Hass的地址和Hass登录密码. 如无密码登录, 密码栏请留空. 参考下面的例子:
 ```
 账号: http://127.0.0.1:8123
 密码: passwd
@@ -41,7 +41,7 @@ homeassistant:
 如有更多需求, 请参考下述问题反馈的链接反馈需求和问题.
 
 ## 问题反馈
-bbs: <https://bbs.hassbian.com/forum.php>
-github: <https://github.com/SchumyHao/homebase-driver-hass/issues>
+bbs: <https://bbs.hassbian.com/forum.php>  
+github: <https://github.com/SchumyHao/homebase-driver-hass/issues>  
 mail: <schumy.haojl@gmail.com>
 
