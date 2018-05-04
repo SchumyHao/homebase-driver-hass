@@ -12,6 +12,7 @@
 账号: http://127.0.0.1:8123
 密码: passwd
 ```
+- 请确认账号务必写明**http**或者**https**, 插件将依靠此信息使用http或者https访问Hass.
 - 默认情况下, 插件会将所有Hass支持的设备映射到Rokid家庭中. 如果有不希望映射到Rokid的设备, 请在Hass的config yaml给设备添加**rhass_hidden**属性并设置为**true**. 参考下面的例子:
 ```
 homeassistant:
