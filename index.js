@@ -146,6 +146,7 @@ module.exports = function () {
      */
     list: function(userAuth) {
       hass_login(userAuth);
+      accessories.length = 0;
 
       return hass.states.list()
         .then(entities_state => {
