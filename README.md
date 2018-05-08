@@ -37,6 +37,11 @@ homeassistant:
 - lock
 - switch
 - vacuum
+- automation
+- input_boolean
+- media_player
+- remote
+- script
 
 未适配的Domain可以在Hass中尝试使用template设备转换为上述Domain的设备.    
 如有更多需求, 请参考下述问题反馈的链接反馈需求和问题.
