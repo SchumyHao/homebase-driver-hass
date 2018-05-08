@@ -9,6 +9,7 @@ var hass_switch = require('./lib/HassSwitch');
 var hass_automation = require('./lib/HassAutomation');
 var hass_input_boolean = require('./lib/HassInputBoolean');
 var hass_media_player = require('./lib/HassMediaPlayer');
+var hass_remote = require('./lib/HassRemote');
 
 var hassurl;
 var hasspasswd;
@@ -58,6 +59,8 @@ module.exports = function () {
       acc = hass_input_boolean.transform(entity_state);
     else if (domain === 'media_player')
       acc = hass_media_player.transform(entity_state);
+    else if (domain === 'remote')
+      acc = hass_remote.transform(entity_state);
     else
       console.error("%s DOMAIN is not supported yet.", domain);
 
@@ -119,6 +122,9 @@ module.exports = function () {
       } else if (domain === 'input_boolean') {
         console.log("Execute hass_input_boolean.");
         return hass_input_boolean.execute(hass, accessory.deviceInfo, action);
+      } else if (domain === 'remote') {
+        console.log("Execute hass_remote.");
+        return hass_remote.execute(hass, accessory.deviceInfo, action);
       }
     } else if (type === 'scene') {
       console.log("Execute hass_automation.");
@@ -159,6 +165,9 @@ module.exports = function () {
       } else if (domain === 'input_boolean') {
         console.log("Get hass_input_boolean states.")
         return hass_input_boolean.get(hass, accessory.deviceInfo);
+      } else if (domain === 'remote') {
+        console.log("Get hass_remote states.")
+        return hass_remote.get(hass, accessory.deviceInfo);
       }
     } else if (type === 'scene') {
       console.log("Get hass_automation states.")
