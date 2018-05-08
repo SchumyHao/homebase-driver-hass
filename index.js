@@ -6,6 +6,7 @@ var hass_lock = require('./lib/HassLock');
 var hass_fan = require('./lib/HassFan');
 var hass_light = require('./lib/HassLight');
 var hass_switch = require('./lib/HassSwitch');
+var hass_automation = require('./lib/HassAutomation');
 
 var hassurl;
 var hasspasswd;
@@ -49,6 +50,8 @@ module.exports = function () {
       acc = hass_light.transform(entity_state);
     else if (domain === 'switch')
       acc = hass_switch.transform(entity_state);
+    else if (domain === 'automation')
+      acc = hass_automation.transform(entity_state);
     else
       console.error("%s DOMAIN is not supported yet.", domain);
 
@@ -105,6 +108,9 @@ module.exports = function () {
     } else if (type === 'switch') {
       console.log("Execute hass_switch.");
       return hass_switch.execute(hass, accessory.deviceInfo, action);
+    } else if (type === 'scene') {
+      console.log("Execute hass_automation.");
+      return hass_automation.execute(hass, accessory.deviceInfo, action);
     } else {
       return Promise.reject(new Error(`${type} type is not supported yet.`));
     }
@@ -133,6 +139,9 @@ module.exports = function () {
     } else if (type === 'switch') {
       console.log("Get hass_switch states.")
       return hass_switch.get(hass, accessory.deviceInfo);
+    } else if (type === 'scene') {
+      console.log("Get hass_automation states.")
+      return hass_automation.get(hass, accessory.deviceInfo);
     } else {
       console.error("%s type is not supported yet.", type);
       return Promise.reject(new Error("not support"));
