@@ -8,6 +8,7 @@ var hass_light = require('./lib/HassLight');
 var hass_switch = require('./lib/HassSwitch');
 var hass_automation = require('./lib/HassAutomation');
 var hass_input_boolean = require('./lib/HassInputBoolean');
+var hass_media_player = require('./lib/HassMediaPlayer');
 
 var hassurl;
 var hasspasswd;
@@ -55,6 +56,8 @@ module.exports = function () {
       acc = hass_automation.transform(entity_state);
     else if (domain === 'input_boolean')
       acc = hass_input_boolean.transform(entity_state);
+    else if (domain === 'media_player')
+      acc = hass_media_player.transform(entity_state);
     else
       console.error("%s DOMAIN is not supported yet.", domain);
 
@@ -120,6 +123,9 @@ module.exports = function () {
     } else if (type === 'scene') {
       console.log("Execute hass_automation.");
       return hass_automation.execute(hass, accessory.deviceInfo, action);
+    } else if (type === 'tv') {
+      console.log("Execute hass_media_player.");
+      return hass_media_player.execute(hass, accessory.deviceInfo, action);
     } else {
       return Promise.reject(new Error(`${type} type is not supported yet.`));
     }
@@ -157,6 +163,9 @@ module.exports = function () {
     } else if (type === 'scene') {
       console.log("Get hass_automation states.")
       return hass_automation.get(hass, accessory.deviceInfo);
+    } else if (type === 'tv') {
+      console.log("Get hass_media_player states.")
+      return hass_media_player.get(hass, accessory.deviceInfo);
     } else {
       console.error("%s type is not supported yet.", type);
       return Promise.reject(new Error("not support"));
