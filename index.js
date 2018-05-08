@@ -7,6 +7,7 @@ var hass_fan = require('./lib/HassFan');
 var hass_light = require('./lib/HassLight');
 var hass_switch = require('./lib/HassSwitch');
 var hass_automation = require('./lib/HassAutomation');
+var hass_input_boolean = require('./lib/HassInputBoolean');
 
 var hassurl;
 var hasspasswd;
@@ -52,6 +53,8 @@ module.exports = function () {
       acc = hass_switch.transform(entity_state);
     else if (domain === 'automation')
       acc = hass_automation.transform(entity_state);
+    else if (domain === 'input_boolean')
+      acc = hass_input_boolean.transform(entity_state);
     else
       console.error("%s DOMAIN is not supported yet.", domain);
 
@@ -106,8 +109,14 @@ module.exports = function () {
       console.log("Execute hass_light.");
       return hass_light.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'switch') {
-      console.log("Execute hass_switch.");
-      return hass_switch.execute(hass, accessory.deviceInfo, action);
+      var domain = accessory.deviceInfo.domain;
+      if (domain === 'switch') {
+        console.log("Execute hass_switch.");
+        return hass_switch.execute(hass, accessory.deviceInfo, action);
+      } else if (domain === 'input_boolean') {
+        console.log("Execute hass_input_boolean.");
+        return hass_input_boolean.execute(hass, accessory.deviceInfo, action);
+      }
     } else if (type === 'scene') {
       console.log("Execute hass_automation.");
       return hass_automation.execute(hass, accessory.deviceInfo, action);
@@ -137,8 +146,14 @@ module.exports = function () {
       console.log("Get hass_light states.")
       return hass_light.get(hass, accessory.deviceInfo);
     } else if (type === 'switch') {
-      console.log("Get hass_switch states.")
-      return hass_switch.get(hass, accessory.deviceInfo);
+      var domain = accessory.deviceInfo.domain;
+      if (domain === 'switch') {
+        console.log("Get hass_switch states.")
+        return hass_switch.get(hass, accessory.deviceInfo);
+      } else if (domain === 'input_boolean') {
+        console.log("Get hass_input_boolean states.")
+        return hass_input_boolean.get(hass, accessory.deviceInfo);
+      }
     } else if (type === 'scene') {
       console.log("Get hass_automation states.")
       return hass_automation.get(hass, accessory.deviceInfo);
