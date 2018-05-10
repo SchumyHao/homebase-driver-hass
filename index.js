@@ -15,6 +15,8 @@ var hass_script = require('./lib/HassScript');
 var hassurl;
 var hasspasswd;
 
+var hass_default_hidden_domain = ['automation'];
+
 module.exports = function () {
   var accessories = [];
 
@@ -80,11 +82,26 @@ module.exports = function () {
 
   function transform_hass_entities(entities_state) {
     entities_state.forEach(entity_state => {
-      if (entity_state.attributes.rhass_hidden) {
-          console.log("%s is hidden in hass", entity_state.entity_id);
-          return true; 
+      var entity_id = entity_state.entity_id;
+      var domain = get_entity_domain(entity_id);
+      var hidden = false;
+
+      if (hass_default_hidden_domain.indexOf(domain) >= 0) {
+        if (entity_state.attributes.rhass_show)
+          hidden = false;
+        else
+          hidden = true;
+      } else {
+        if (entity_state.attributes.rhass_hidden)
+          hidden = true;
+        else
+          hidden = false;
       }
-      add_hass_entity(entity_state);
+
+      if (hidden)
+        console.log("%s is hidden in hass", entity_id);
+      else
+        add_hass_entity(entity_state);
     });
   }
 
