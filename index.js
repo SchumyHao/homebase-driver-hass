@@ -125,9 +125,6 @@ module.exports = function () {
       } else if (domain === 'input_boolean') {
         console.log("Execute hass_input_boolean.");
         return hass_input_boolean.execute(hass, accessory.deviceInfo, action);
-      } else if (domain === 'remote') {
-        console.log("Execute hass_remote.");
-        return hass_remote.execute(hass, accessory.deviceInfo, action);
       } else if (domain === 'script') {
         console.log("Execute hass_script.");
         return hass_script.execute(hass, accessory.deviceInfo, action);
@@ -138,6 +135,9 @@ module.exports = function () {
     } else if (type === 'tv') {
       console.log("Execute hass_media_player.");
       return hass_media_player.execute(hass, accessory.deviceInfo, action);
+    } else if (type === 'remoteController') {
+      console.log("Execute hass_remote.");
+      return hass_remote.execute(hass, accessory.deviceInfo, action);
     } else {
       return Promise.reject(new Error(`${type} type is not supported yet.`));
     }
@@ -171,9 +171,6 @@ module.exports = function () {
       } else if (domain === 'input_boolean') {
         console.log("Get hass_input_boolean states.")
         return hass_input_boolean.get(hass, accessory.deviceInfo);
-      } else if (domain === 'remote') {
-        console.log("Get hass_remote states.")
-        return hass_remote.get(hass, accessory.deviceInfo);
       } else if (domain === 'script') {
         console.log("Get hass_script states.")
         return hass_script.get(hass, accessory.deviceInfo);
@@ -184,6 +181,9 @@ module.exports = function () {
     } else if (type === 'tv') {
       console.log("Get hass_media_player states.")
       return hass_media_player.get(hass, accessory.deviceInfo);
+    } else if (type === 'remoteController') {
+      console.log("Get hass_remote states.")
+      return hass_remote.get(hass, accessory.deviceInfo);
     } else {
       console.error("%s type is not supported yet.", type);
       return Promise.reject(new Error("not support"));
