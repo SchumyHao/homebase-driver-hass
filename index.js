@@ -75,6 +75,10 @@ module.exports = function () {
         acc.type = entity_state.attributes.rhass_type;
         console.log("Change %s type to %s.", entity_id, acc.type);
       }
+      if (entity_state.state === 'unavailable') {
+        acc.offline = true;
+        console.log("%s is offline.", entity_id);
+      }
       accessories.push(acc);
       console.log("Add %s to homebase.", entity_id);
     }
