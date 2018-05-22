@@ -80,6 +80,10 @@ module.exports = function () {
         acc.name = entity_state.attributes.rhass_name;
         console.log("Change %s name to %s.", entity_id, acc.name);
       }
+      if (entity_state.attributes.rhass_room) {
+        acc.roomName = entity_state.attributes.rhass_room;
+        console.log("Add room name %s to %s.", acc.name, entity_id);
+      }
       if (entity_state.state === 'unavailable') {
         acc.offline = true;
         console.log("%s is offline.", entity_id);

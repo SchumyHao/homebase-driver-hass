@@ -67,6 +67,16 @@ homeassistant:
       rhass_name: '装饰灯'
 ```
 
+### 指定设备房间
+- 如果用户有自定义Rokid家庭中设备房间的需求, 则可以使用**rhass_room**属性来给设备指定房间.
+- 请注意设置**rhass_room**的房间名字与APP测创建的房间名字**完全一致**.
+```
+homeassistant:
+  customize:
+    switch.decorative_lights:
+      rhass_room: '客厅'
+```
+
 ## 目前支持的设备
 插件根据Hass Entity的Domain自动映射到Rokid家庭中, 目前支持的Hass Domain有:
 - climate
