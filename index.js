@@ -75,6 +75,11 @@ module.exports = function () {
         acc.type = entity_state.attributes.rhass_type;
         console.log("Change %s type to %s.", entity_id, acc.type);
       }
+      if (entity_state.attributes.rhass_name) {
+        acc.deviceInfo.origin_name = acc.name;
+        acc.name = entity_state.attributes.rhass_name;
+        console.log("Change %s name to %s.", entity_id, acc.name);
+      }
       if (entity_state.state === 'unavailable') {
         acc.offline = true;
         console.log("%s is offline.", entity_id);

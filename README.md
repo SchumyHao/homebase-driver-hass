@@ -57,6 +57,16 @@ homeassistant:
       rhass_type: 'socket'
 ```
 
+### 指定设备名称
+- 默认情况下, 插件会将Hass设备的*friendly_name*设置为Rokid家庭中设备的名字. 如果Hass设备没有*friendly_name*属性, 则使用*entity_id*作为设备名字.
+- 如果用户有自定义Rokid家庭中设备名字的需求, 不希望按照上述的逻辑生成名字, 则可以使用**rhass_name**属性来给设备设置名字.
+```
+homeassistant:
+  customize:
+    switch.decorative_lights:
+      rhass_name: '装饰灯'
+```
+
 ## 目前支持的设备
 插件根据Hass Entity的Domain自动映射到Rokid家庭中, 目前支持的Hass Domain有:
 - climate
