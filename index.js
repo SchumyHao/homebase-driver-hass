@@ -11,14 +11,16 @@ var hass_input_boolean = require('./lib/HassInputBoolean');
 var hass_media_player = require('./lib/HassMediaPlayer');
 var hass_remote = require('./lib/HassRemote');
 var hass_script = require('./lib/HassScript');
+var logger = require("./lib/logger");
 
 var hassurl;
 var hasspasswd;
 
 var hass_default_hidden_domain = ['automation'];
 
-module.exports = function () {
+module.exports = function (env) {
   var accessories = [];
+  logger.setLogger(env && env.logger)
 
   function hass_login(userAuth) {
     var url = userAuth.userId || hassurl;
@@ -67,29 +69,29 @@ module.exports = function () {
     else if (domain === 'script')
       acc = hass_script.transform(entity_state);
     else
-      console.error("%s DOMAIN is not supported yet.", domain);
+      logger.error("%s DOMAIN is not supported yet.", domain);
 
     if ((acc.actions) && (Object.keys(acc.actions).length > 0)) {
       if (entity_state.attributes.rhass_type) {
         acc.deviceInfo.origin_type = acc.type;
         acc.type = entity_state.attributes.rhass_type;
-        console.log("Change %s type to %s.", entity_id, acc.type);
+        logger.log("Change %s type to %s.", entity_id, acc.type);
       }
       if (entity_state.attributes.rhass_name) {
         acc.deviceInfo.origin_name = acc.name;
         acc.name = entity_state.attributes.rhass_name;
-        console.log("Change %s name to %s.", entity_id, acc.name);
+        logger.log("Change %s name to %s.", entity_id, acc.name);
       }
       if (entity_state.attributes.rhass_room) {
         acc.roomName = entity_state.attributes.rhass_room;
-        console.log("Add room name %s to %s.", acc.name, entity_id);
+        logger.log("Add room name %s to %s.", acc.name, entity_id);
       }
       if (entity_state.state === 'unavailable') {
         acc.offline = true;
-        console.log("%s is offline.", entity_id);
+        logger.log("%s is offline.", entity_id);
       }
       accessories.push(acc);
-      console.log("Add %s to homebase.", entity_id);
+      logger.log("Add %s to homebase.", entity_id);
     }
   }
 
@@ -112,7 +114,7 @@ module.exports = function () {
       }
 
       if (hidden)
-        console.log("%s is hidden in hass", entity_id);
+        logger.log("%s is hidden in hass", entity_id);
       else
         add_hass_entity(entity_state);
     });
@@ -127,46 +129,46 @@ module.exports = function () {
   }
 
   function accessory_execute(accessory, action, hass) {
-    console.log("%s excute with action: ", accessory.deviceId, action);
+    logger.log("%s excute with action: ", accessory.deviceId, action);
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
-      console.log("Execute hass_climate.");
+      logger.log("Execute hass_climate.");
       return hass_climate.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'cleanBot') {
-      console.log("Execute hass_vacuum.");
+      logger.log("Execute hass_vacuum.");
       return hass_vacuum.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'curtain') {
-      console.log("Execute hass_cover.");
+      logger.log("Execute hass_cover.");
       return hass_cover.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'door') {
-      console.log("Execute hass_lock.");
+      logger.log("Execute hass_lock.");
       return hass_lock.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'fan') {
-      console.log("Execute hass_fan.");
+      logger.log("Execute hass_fan.");
       return hass_fan.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'light') {
-      console.log("Execute hass_light.");
+      logger.log("Execute hass_light.");
       return hass_light.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'switch') {
       var domain = accessory.deviceInfo.domain;
       if (domain === 'switch') {
-        console.log("Execute hass_switch.");
+        logger.log("Execute hass_switch.");
         return hass_switch.execute(hass, accessory.deviceInfo, action);
       } else if (domain === 'input_boolean') {
-        console.log("Execute hass_input_boolean.");
+        logger.log("Execute hass_input_boolean.");
         return hass_input_boolean.execute(hass, accessory.deviceInfo, action);
       }
     } else if (type === 'scene') {
-      console.log("Execute hass_automation.");
+      logger.log("Execute hass_automation.");
       return hass_automation.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'tv') {
-      console.log("Execute hass_media_player.");
+      logger.log("Execute hass_media_player.");
       return hass_media_player.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'remoteController') {
-      console.log("Execute hass_remote.");
+      logger.log("Execute hass_remote.");
       return hass_remote.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'scene') {
-      console.log("Execute hass_script.");
+      logger.log("Execute hass_script.");
       return hass_script.execute(hass, accessory.deviceInfo, action);
     } else {
       return Promise.reject(new Error(`${type} type is not supported yet.`));
@@ -176,46 +178,46 @@ module.exports = function () {
   function accessory_get_states(accessory, hass) {
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
-      console.log("Get hass_climate states.")
+      logger.log("Get hass_climate states.")
       return hass_climate.get(hass, accessory.deviceInfo);
     } else if (type === 'cleanBot') {
-      console.log("Get hass_vacuum states.")
+      logger.log("Get hass_vacuum states.")
       return hass_vacuum.get(hass, accessory.deviceInfo);
     } else if (type === 'curtain') {
-      console.log("Get hass_cover states.")
+      logger.log("Get hass_cover states.")
       return hass_cover.get(hass, accessory.deviceInfo);
     } else if (type === 'door') {
-      console.log("Get hass_lock states.")
+      logger.log("Get hass_lock states.")
       return hass_lock.get(hass, accessory.deviceInfo);
     } else if (type === 'fan') {
-      console.log("Get hass_fan states.")
+      logger.log("Get hass_fan states.")
       return hass_fan.get(hass, accessory.deviceInfo);
     } else if (type === 'light') {
-      console.log("Get hass_light states.")
+      logger.log("Get hass_light states.")
       return hass_light.get(hass, accessory.deviceInfo);
     } else if (type === 'switch') {
       var domain = accessory.deviceInfo.domain;
       if (domain === 'switch') {
-        console.log("Get hass_switch states.")
+        logger.log("Get hass_switch states.")
         return hass_switch.get(hass, accessory.deviceInfo);
       } else if (domain === 'input_boolean') {
-        console.log("Get hass_input_boolean states.")
+        logger.log("Get hass_input_boolean states.")
         return hass_input_boolean.get(hass, accessory.deviceInfo);
       }
     } else if (type === 'scene') {
-      console.log("Get hass_automation states.")
+      logger.log("Get hass_automation states.")
       return hass_automation.get(hass, accessory.deviceInfo);
     } else if (type === 'tv') {
-      console.log("Get hass_media_player states.")
+      logger.log("Get hass_media_player states.")
       return hass_media_player.get(hass, accessory.deviceInfo);
     } else if (type === 'remoteController') {
-      console.log("Get hass_remote states.")
+      logger.log("Get hass_remote states.")
       return hass_remote.get(hass, accessory.deviceInfo);
     } else if (type === 'scene') {
-      console.log("Get hass_script states.")
+      logger.log("Get hass_script states.")
       return hass_script.get(hass, accessory.deviceInfo);
     } else {
-      console.error("%s type is not supported yet.", type);
+      logger.error("%s type is not supported yet.", type);
       return Promise.reject(new Error("not support"));
     }
   }
@@ -231,17 +233,17 @@ module.exports = function () {
 
       return hass.states.list()
         .then(entities_state => {
-          console.log("Dump hass eneities states:")
+          logger.log("Dump hass eneities states:")
           if (entities_state === "404: Not Found")
             throw new Error(entities_state);
-          console.log(entities_state);
+          logger.log(entities_state);
           transform_hass_entities(entities_state);
-          console.log("Dump accessories:")
-          console.log(accessories);
+          logger.log("Dump accessories:")
+          logger.log(accessories);
           return accessories;
         })
         .catch(err => {
-          console.error("Get hass entities states error: %s", err);
+          logger.error("Get hass entities states error: %s", err);
         })
     },
 
@@ -265,7 +267,7 @@ module.exports = function () {
           if (accessories.length > 0) {
             return Promise.resolve();
           } else {
-            console.log("Accessories are empty, list them first.")
+            logger.log("Accessories are empty, list them first.")
 
             return hass.states.list()
               .then(entities_state => {
@@ -279,11 +281,11 @@ module.exports = function () {
           var accessory = find_accessory(device.deviceId);
 
           if (!accessory) {
-            console.error("Could not find accessory %s in accessories.", device.deviceId);
+            logger.error("Could not find accessory %s in accessories.", device.deviceId);
             return Promise.reject(new Error("no device"));
           }
           if (!accessory.actions[action.property]) {
-            console.error("%s is not supported by %s.", action.property, accessory.deviceId);
+            logger.error("%s is not supported by %s.", action.property, accessory.deviceId);
             return Promise.reject(new Error("not support"));
           }
           return accessory_execute(accessory, action, hass)
@@ -302,11 +304,11 @@ module.exports = function () {
                 ret.name = states[action.property];
               }
 
-              console.log(ret);
+              logger.log(ret);
               return ret;
             })
             .catch(err => {
-              console.error("Excute %s error: %s", action.property, err);
+              logger.error("Excute %s error: %s", action.property, err);
             })
           })
     },
