@@ -15,6 +15,14 @@ homeassistant:
 http:
   api_password: passwd
 ```
+## 高于0.90请修改为
+```
+homeassistant:
+  auth_providers:
+   - type: legacy_api_password
+     api_password: passwd
+
+```
 
 ## 使用帮助
 - 绑定插件.
