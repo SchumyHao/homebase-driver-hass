@@ -12,17 +12,42 @@ var hass_media_player = require('./lib/HassMediaPlayer');
 var hass_remote = require('./lib/HassRemote');
 var hass_script = require('./lib/HassScript');
 
-var hassurl;
-var hasspasswd;
+// var hassurl;
+// var hasspasswd;
 
 var hass_default_hidden_domain = ['automation'];
 
 module.exports = function () {
   var accessories = [];
 
+  /**
+   * 
+   * @param {object} userAuth 
+   * @param {string} userAuth.userId
+   * @param {string} userAuth.userToken base64
+   */
   function hass_login(userAuth) {
-    var url = userAuth.userId || hassurl;
-    var passwd = userAuth.userToken || hasspasswd;
+    /**
+     * @type {object}
+     * @property {string} url hassURL
+     * @property {string} type on of ('token', 'password')
+     * @property {string} password auth via password
+     * @property {string} token auth via token
+     */
+    var authObj
+    if (userAuth.userId === 'hass') {
+      var token = Buffer.from(userAuth.userToken, 'base64').toString('utf8')
+      authObj = JSON.parse(token)
+    } else {
+      authObj = {
+        type: 'password',
+        url: userAuth.userId,
+        password: userAuth.userToken
+      }
+    }
+
+    var url = authObj.url;
+    var passwd = authObj.passwords;
     var para = {};
 
     para.https = (url.indexOf('https') === 0);
@@ -311,28 +336,6 @@ module.exports = function () {
           })
     },
 
-    command: function(command, params) {
-      if (command === 'login') {
-        hassurl = params.username;
-        hasspasswd = params.password;
-        hass_login({userId: hassurl, userToken: hasspasswd});
-
-        return hass.states.list()
-          .then(entities_state => {
-            if (entities_state === "404: Not Found")
-              return Promise.reject(new Error(`username or passwd error`));
-            else
-              return Promise.resolve()
-                .then(() => {
-                  return {"userId": hassurl, "userToken": hasspasswd};
-                })
-          })
-          .catch(err => {
-            return Promise.reject(new Error("Get hass entities states error: ", err));
-          })
-      } else {
-        return Promise.reject(new Error(`command ${command} not support.`))
-      }
-    }
+    command: require('./command')()
   }
 };
