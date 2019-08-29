@@ -3,8 +3,15 @@
 module.exports = function () {
   var commands = {
     OAuth({ callbackURL }) {
-      return `https://s.rokidcdn.com/homebase/upload/S1lKP_q1BS.html?callbackURL=${encodeURIComponent(callbackURL)}`
-    }
+      return `http://s.rokidcdn.com/homebase/upload/HyYpFmVrr.html?callbackURL=${encodeURIComponent(callbackURL)}`
+    },
+    OAuthGetToken({ code }) {
+      //TODO: code to userAuth
+      return {
+        userId: 'hassoauth',
+        userToken: hello
+      }
+    },
   }
 
   return (command, params) => {
