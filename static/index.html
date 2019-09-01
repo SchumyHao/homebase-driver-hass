@@ -16,7 +16,7 @@
     <form class="needs-validation" novalidate>
       <h1>HASS 绑定</h1>
       <div class="form-group">
-        <label for="url">URL</label>
+        <label for="url">HASS URL</label>
         <input type="url" class="form-control" id="url" required aria-describedby="emailHelp"
           placeholder="输入你的 Hass 接口访问地址">
         <small id="emailHelp" class="form-text text-muted">HASS访问地址</small>
@@ -84,8 +84,6 @@
           return o
         }, {})
 
-        console.log(query, query)
-
         const options = {}
 
         function callback(authObj, callbackURL) {
@@ -96,14 +94,28 @@
             alert('error 101')
             return
           }
-          const search = "code=" + encodeURIComponent(btoa(JSON.stringify(authObj)))
+          var isOAuth2 = authObj.type === 'oauth2'
+          var objQuery = {
+            userId: 'hass-' + authObj.type,
+            userToken: isOAuth2 ? authObj.access_token : authObj.password,
+            expiresIn: isOAuth2 ? authObj.expires_in : '',
+            refreshToken: isOAuth2 ? authObj.refresh_token : '',
+            ex1: authObj.hassUrl,
+            ex2: isOAuth2 ? authObj.clientId : '',
+            ex3: authObj.type
+          }
+          var search = Object.keys(objQuery).reduce((s, key) => {
+            s && (s += '&');
+            s += [key, encodeURIComponent(objQuery[key])].join('=')
+            return s
+          }, '')
           location.href = callbackURL + (/\?/.test(callbackURL) ? '&' : '?') + search
         }
 
         function useAuth(auth) {
           history.replaceState(null, null, "/");
           callback(Object.assign(auth.data, {
-            type: 'token'
+            type: 'oauth2'
           }))
         }
 
@@ -117,24 +129,22 @@
           const elUrl = document.querySelector('#url')
           var hassUrl = elUrl.value;
           if (theForm.checkValidity() === false) {
-            console.error('not valid')
+            alert('not valid')
           } else {
             const url = location.search
             if (authType === 'token') {
               var options = { hassUrl: hassUrl };
-              if (host.substr(0, 5) == 'http:') {
+              if (hassUrl.substr(0, 5) == 'http:') {
                 options.redirectUrl = "http://" + location.host + location.pathname
-                options.redirectUrl = options.redirectUrl
               }
               localStorage.setItem('redirect', query.callbackURL)
-              console.log('haws getAuth', options)
               HAWS.getAuth(options)
                 .then(useAuth, errorAuth);
             } else if (authType === 'password') {
               callback({
                 type: 'password',
-                password: document.querySelector('#inputPassword').value,
-                url: hassUrl
+                hassUrl: hassUrl,
+                password: document.querySelector('#inputPassword').value
               }, query.callbackURL)
             }
           }

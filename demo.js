@@ -11,6 +11,7 @@ function search() {
   })
   .catch(err => {
     console.error('List hass device failed. ', err);
+    throw err
   })
   .then((devices) => {
     console.log('found accessories ======>')

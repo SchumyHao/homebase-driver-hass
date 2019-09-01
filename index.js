@@ -1,4 +1,4 @@
-var hass = require('./lib/Homeassistant');
+var Hass = require('./lib/Homeassistant');
 var hass_climate = require('./lib/HassClimate');
 var hass_vacuum = require('./lib/HassVacuum');
 var hass_cover = require('./lib/HassCover');
@@ -19,44 +19,6 @@ var hass_default_hidden_domain = ['automation'];
 
 module.exports = function () {
   var accessories = [];
-
-  /**
-   * 
-   * @param {object} userAuth 
-   * @param {string} userAuth.userId
-   * @param {string} userAuth.userToken base64
-   */
-  function hass_login(userAuth) {
-    /**
-     * @type {object}
-     * @property {string} url hassURL
-     * @property {string} type on of ('token', 'password')
-     * @property {string} password auth via password
-     * @property {string} token auth via token
-     */
-    var authObj
-    if (userAuth.userId === 'hass') {
-      var token = Buffer.from(userAuth.userToken, 'base64').toString('utf8')
-      authObj = JSON.parse(token)
-    } else {
-      authObj = {
-        type: 'password',
-        url: userAuth.userId,
-        password: userAuth.userToken
-      }
-    }
-
-    var url = authObj.url;
-    var passwd = authObj.passwords;
-    var para = {};
-
-    para.https = (url.indexOf('https') === 0);
-    para.port = parseInt(url.slice(url.lastIndexOf(':')+1));
-    para.host = url.slice(url.indexOf('/')+2, url.lastIndexOf(':'));
-    if (passwd)
-      para.password = passwd;
-    hass.constructor(para);
-  }
 
   function get_entity_domain(entity_id) {
     return entity_id.split('.')[0];
@@ -251,10 +213,9 @@ module.exports = function () {
      * @returns {PromiseLike<>|Promise.<>}
      */
     list: function(userAuth) {
-      hass_login(userAuth);
+      var hass = new Hass(userAuth);
       accessories.length = 0;
-
-      return hass.states.list()
+      return hass.list()
         .then(entities_state => {
           console.log("Dump hass eneities states:")
           if (entities_state === "404: Not Found")
@@ -283,7 +244,7 @@ module.exports = function () {
      * @return {Promise}
      */
     execute: function(device, action) {
-      hass_login(device.userAuth);
+      const hass = new Hass(device.userAuth);
 
       return Promise.resolve()
         .then(() => {
@@ -292,7 +253,7 @@ module.exports = function () {
           } else {
             console.log("Accessories are empty, list them first.")
 
-            return hass.states.list()
+            return hass.list()
               .then(entities_state => {
                 if (entities_state === "404: Not Found")
                   return Promise.reject(new Error("404: Not Found"));
@@ -336,6 +297,6 @@ module.exports = function () {
           })
     },
 
-    command: require('./command')()
+    command: require('./lib/command.js')()
   }
 };
