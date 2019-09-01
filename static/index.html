@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="//s.rokidcdn.com/homebase/upload/rJ_Hu5JrS.css" />
+  <script src="https://unpkg.com/home-assistant-js-websocket@3.0.0/dist/haws.umd.js"></script>
+  <title>HASS login</title>
+
+</head>
+
+<body>
+  <div class="container">
+    <form class="needs-validation" novalidate>
+      <h1>HASS 绑定</h1>
+      <div class="form-group">
+        <label for="url">HASS URL</label>
+        <input type="url" class="form-control" id="url" required aria-describedby="emailHelp"
+          placeholder="输入你的 Hass 接口访问地址">
+        <small id="emailHelp" class="form-text text-muted">HASS访问地址</small>
+      </div>
+      <div id="authTypeToggle" class="form-group mb-2" role="group" data-toggle="buttons" aria-label="Basic example">
+        <label class="d-block">
+          <input type="radio" name="authType" id="radioToken" value="token" autocomplete="on" checked> 使用Token
+        </label>
+        <label class="d-block">
+          <input type="radio" name="authType" id="radioPassword" value="password" autocomplete="off"> 使用密码
+        </label>
+      </div>
+      <div class="form-group d-none" id="fgPass">
+        <input type="text" class="form-control" id="inputPassword" placeholder="PassWord">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">去绑定</button>
+      </div>
+
+    </form>
+  </div>
+  <script>
+    (function () {
+      'use strict';
+      window.addEventListener('load', function () {
+        const radios = document.querySelectorAll('input[name="authType"][type=radio]')
+        const theForm = document.querySelector('form')
+        var authType
+        radios.forEach(el => {
+          el.parentElement.addEventListener('click', function (ev) {
+            setTimeout(function () {
+              updateValidate()
+            }, 100)
+          })
+        })
+        function updateValidate() {
+          radios.forEach(elem => {
+            if (elem.checked) {
+              authType = elem.value
+            }
+          })
+
+          if (authType === 'password') {
+            document.querySelector('#fgPass').classList.remove('d-none')
+            document.querySelector('#fgPass input').required = true
+          } else {
+            document.querySelector('#fgPass').classList.add('d-none')
+            document.querySelector('#fgPass input').required = false
+          }
+        }
+
+        updateValidate()
+
+
+        
+        function errorAuth(err) {
+          console.error('errorAuth', err)
+        }
+
+        const query = location.search.substr(1).split('&').reduce(function (o, pair) {
+          const p = pair.split('=')
+          if (p.length) {
+            o[p[0]] = p[1] ? decodeURIComponent(p[1]) : undefined
+          }
+          return o
+        }, {})
+
+        const options = {}
+
+        function callback(authObj, callbackURL) {
+          if (!callbackURL) {
+            callbackURL = localStorage.getItem('redirect')
+          }
+          if (!callbackURL) {
+            alert('error 101')
+            return
+          }
+          var isOAuth2 = authObj.type === 'oauth2'
+          var objQuery = {
+            userId: 'hass-' + authObj.type,
+            userToken: isOAuth2 ? authObj.access_token : authObj.password,
+            expiresIn: isOAuth2 ? authObj.expires_in : '',
+            refreshToken: isOAuth2 ? authObj.refresh_token : '',
+            ext1: authObj.hassUrl,
+            ext2: isOAuth2 ? authObj.clientId : '',
+            ext3: authObj.type
+          }
+          var search = Object.keys(objQuery).reduce((s, key) => {
+            s && (s += '&');
+            s += [key, encodeURIComponent(objQuery[key])].join('=')
+            return s
+          }, '')
+          location.href = callbackURL + (/\?/.test(callbackURL) ? '&' : '?') + search
+        }
+
+        function useAuth(auth) {
+          history.replaceState(null, null, "/");
+          callback(Object.assign(auth.data, {
+            type: 'oauth2'
+          }))
+        }
+
+        HAWS.getAuth(options)
+          .then(useAuth, errorAuth)
+
+        theForm.addEventListener('submit', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          theForm.classList.add('was-validated');
+          const elUrl = document.querySelector('#url')
+          var hassUrl = elUrl.value;
+          if (theForm.checkValidity() === false) {
+            alert('not valid')
+          } else {
+            const url = location.search
+            if (authType === 'token') {
+              var options = { hassUrl: hassUrl };
+              if (hassUrl.substr(0, 5) == 'http:') {
+                options.gitredirectUrl = "http://" + location.host + location.pathname
+                options.redirectUrl = options.redirectUrl
+              }
+              localStorage.setItem('redirect', query.callbackURL)
+              HAWS.getAuth(options)
+                .then(useAuth, errorAuth);
+            } else if (authType === 'password') {
+              callback({
+                type: 'password',
+                hassUrl: hassUrl,
+                password: document.querySelector('#inputPassword').value
+              }, query.callbackURL)
+            }
+          }
+        }, false);
+      }, false);
+    })()
+  </script>
+</body>
+
+</html>

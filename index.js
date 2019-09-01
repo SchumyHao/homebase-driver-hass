@@ -1,4 +1,4 @@
-var hass = require('./lib/Homeassistant');
+var Hass = require('./lib/Homeassistant');
 var hass_climate = require('./lib/HassClimate');
 var hass_vacuum = require('./lib/HassVacuum');
 var hass_cover = require('./lib/HassCover');
@@ -12,26 +12,13 @@ var hass_media_player = require('./lib/HassMediaPlayer');
 var hass_remote = require('./lib/HassRemote');
 var hass_script = require('./lib/HassScript');
 
-var hassurl;
-var hasspasswd;
+// var hassurl;
+// var hasspasswd;
 
 var hass_default_hidden_domain = ['automation'];
 
 module.exports = function () {
   var accessories = [];
-
-  function hass_login(userAuth) {
-    var url = userAuth.userId || hassurl;
-    var passwd = userAuth.userToken || hasspasswd;
-    var para = {};
-
-    para.https = (url.indexOf('https') === 0);
-    para.port = parseInt(url.slice(url.lastIndexOf(':')+1));
-    para.host = url.slice(url.indexOf('/')+2, url.lastIndexOf(':'));
-    if (passwd)
-      para.password = passwd;
-    hass.constructor(para);
-  }
 
   function get_entity_domain(entity_id) {
     return entity_id.split('.')[0];
@@ -226,10 +213,9 @@ module.exports = function () {
      * @returns {PromiseLike<>|Promise.<>}
      */
     list: function(userAuth) {
-      hass_login(userAuth);
+      var hass = new Hass(userAuth);
       accessories.length = 0;
-
-      return hass.states.list()
+      return hass.list()
         .then(entities_state => {
           console.log("Dump hass eneities states:")
           if (entities_state === "404: Not Found")
@@ -258,7 +244,7 @@ module.exports = function () {
      * @return {Promise}
      */
     execute: function(device, action) {
-      hass_login(device.userAuth);
+      var hass = new Hass(device.userAuth);
 
       return Promise.resolve()
         .then(() => {
@@ -267,7 +253,7 @@ module.exports = function () {
           } else {
             console.log("Accessories are empty, list them first.")
 
-            return hass.states.list()
+            return hass.list()
               .then(entities_state => {
                 if (entities_state === "404: Not Found")
                   return Promise.reject(new Error("404: Not Found"));
@@ -311,28 +297,6 @@ module.exports = function () {
           })
     },
 
-    command: function(command, params) {
-      if (command === 'login') {
-        hassurl = params.username;
-        hasspasswd = params.password;
-        hass_login({userId: hassurl, userToken: hasspasswd});
-
-        return hass.states.list()
-          .then(entities_state => {
-            if (entities_state === "404: Not Found")
-              return Promise.reject(new Error(`username or passwd error`));
-            else
-              return Promise.resolve()
-                .then(() => {
-                  return {"userId": hassurl, "userToken": hasspasswd};
-                })
-          })
-          .catch(err => {
-            return Promise.reject(new Error("Get hass entities states error: ", err));
-          })
-      } else {
-        return Promise.reject(new Error(`command ${command} not support.`))
-      }
-    }
+    command: require('./lib/command.js')()
   }
 };
