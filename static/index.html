@@ -100,9 +100,9 @@
             userToken: isOAuth2 ? authObj.access_token : authObj.password,
             expiresIn: isOAuth2 ? authObj.expires_in : '',
             refreshToken: isOAuth2 ? authObj.refresh_token : '',
-            ex1: authObj.hassUrl,
-            ex2: isOAuth2 ? authObj.clientId : '',
-            ex3: authObj.type
+            ext1: authObj.hassUrl,
+            ext2: isOAuth2 ? authObj.clientId : '',
+            ext3: authObj.type
           }
           var search = Object.keys(objQuery).reduce((s, key) => {
             s && (s += '&');
@@ -135,7 +135,7 @@
             if (authType === 'token') {
               var options = { hassUrl: hassUrl };
               if (hassUrl.substr(0, 5) == 'http:') {
-                options.redirectUrl = "http://" + location.host + location.pathname
+                options.gitredirectUrl = "http://" + location.host + location.pathname
                 options.redirectUrl = options.redirectUrl
               }
               localStorage.setItem('redirect', query.callbackURL)
