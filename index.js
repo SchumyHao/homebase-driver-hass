@@ -1,5 +1,6 @@
 var Hass = require('./lib/Homeassistant');
 var hass_climate = require('./lib/HassClimate');
+var hass_climate_before_096 = require('./lib/HassClimateBefore096');
 var hass_vacuum = require('./lib/HassVacuum');
 var hass_cover = require('./lib/HassCover');
 var hass_lock = require('./lib/HassLock');
@@ -24,13 +25,26 @@ module.exports = function () {
     return entity_id.split('.')[0];
   }
 
-  function add_hass_entity(entity_state) {
+  function versionGE(version, target) {
+    var targetV = target.split('.');
+    var v = version.split('.');
+    targetV[2] = targetV[2] || '0';
+    v[2] = v[2] || '0';
+    if (v[0] - targetV[0] < 0) return false;
+    if (v[1] - targetV[1] < 0) return false;
+    if (v[2] - targetV[2] < 0) return false;
+  }
+
+  function add_hass_entity(entity_state, version) {
     var entity_id = entity_state.entity_id;
     var domain = get_entity_domain(entity_id);
     var acc = {};
 
     if (domain === 'climate')
-      acc = hass_climate.transform(entity_state);
+      if (versionGE(version, '0.96'))
+        acc = hass_climate.transform(entity_state);
+      else
+        acc = hass_climate_before_096.transform(entity_state);
     else if (domain === 'vacuum')
       acc = hass_vacuum.transform(entity_state);
     else if (domain === 'cover')
@@ -80,7 +94,7 @@ module.exports = function () {
     }
   }
 
-  function transform_hass_entities(entities_state) {
+  function transform_hass_entities(entities_state, version) {
     entities_state.forEach(entity_state => {
       var entity_id = entity_state.entity_id;
       var domain = get_entity_domain(entity_id);
@@ -101,7 +115,7 @@ module.exports = function () {
       if (hidden)
         console.log("%s is hidden in hass", entity_id);
       else
-        add_hass_entity(entity_state);
+        add_hass_entity(entity_state, version);
     });
   }
 
@@ -118,7 +132,10 @@ module.exports = function () {
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
       console.log("Execute hass_climate.");
-      return hass_climate.execute(hass, accessory.deviceInfo, action);
+      if (versionGE(hass.version, '0.96'))
+        return hass_climate.execute(hass, accessory.deviceInfo, action);
+      else
+        return hass_climate_before_096.execute(hass, accessory.deviceInfo, action);
     } else if (type === 'cleanBot') {
       console.log("Execute hass_vacuum.");
       return hass_vacuum.execute(hass, accessory.deviceInfo, action);
@@ -164,7 +181,10 @@ module.exports = function () {
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
       console.log("Get hass_climate states.")
-      return hass_climate.get(hass, accessory.deviceInfo);
+      if (versionGE(version, '0.96'))
+        return hass_climate.get(hass, accessory.deviceInfo);
+      else
+        return hass_climate_before_096.get(hass, accessory.deviceInfo);
     } else if (type === 'cleanBot') {
       console.log("Get hass_vacuum states.")
       return hass_vacuum.get(hass, accessory.deviceInfo);
@@ -215,13 +235,19 @@ module.exports = function () {
     list: function(userAuth) {
       var hass = new Hass(userAuth);
       accessories.length = 0;
-      return hass.list()
+      return hass.info()
+        .then(info => {
+          hass.version = info.version;
+        })
+        .then(() => {
+          return hass.list()
+        })
         .then(entities_state => {
           console.log("Dump hass eneities states:")
           if (entities_state === "404: Not Found")
             throw new Error(entities_state);
           console.log(entities_state);
-          transform_hass_entities(entities_state);
+          transform_hass_entities(entities_state, hass.version);
           console.log("Dump accessories:")
           console.log(accessories);
           return accessories;
@@ -246,7 +272,10 @@ module.exports = function () {
     execute: function(device, action) {
       var hass = new Hass(device.userAuth);
 
-      return Promise.resolve()
+      return hass.info()
+        .then(info => {
+          hass.version = info.version;
+        })
         .then(() => {
           if (accessories.length > 0) {
             return Promise.resolve();
@@ -257,10 +286,10 @@ module.exports = function () {
               .then(entities_state => {
                 if (entities_state === "404: Not Found")
                   return Promise.reject(new Error("404: Not Found"));
-                transform_hass_entities(entities_state);
+                transform_hass_entities(entities_state, hass.version);
               })
-            }
-          })
+          }
+        })
         .then(() => {
           var accessory = find_accessory(device.deviceId);
 
