@@ -52,3 +52,5 @@ jspm_packages
 build
 __version
 .idea
+
+.vscode
