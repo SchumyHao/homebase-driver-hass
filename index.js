@@ -181,7 +181,7 @@ module.exports = function () {
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
       console.log("Get hass_climate states.")
-      if (versionGE(version, '0.96'))
+      if (versionGE(hass.version, '0.96'))
         return hass_climate.get(hass, accessory.deviceInfo);
       else
         return hass_climate_before_096.get(hass, accessory.deviceInfo);
