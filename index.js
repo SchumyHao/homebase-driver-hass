@@ -244,7 +244,7 @@ module.exports = function () {
      * @return {Promise}
      */
     execute: function(device, action) {
-      const hass = new Hass(device.userAuth);
+      var hass = new Hass(device.userAuth);
 
       return Promise.resolve()
         .then(() => {

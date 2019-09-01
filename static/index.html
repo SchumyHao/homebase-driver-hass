@@ -136,6 +136,7 @@
               var options = { hassUrl: hassUrl };
               if (hassUrl.substr(0, 5) == 'http:') {
                 options.redirectUrl = "http://" + location.host + location.pathname
+                options.redirectUrl = options.redirectUrl
               }
               localStorage.setItem('redirect', query.callbackURL)
               HAWS.getAuth(options)
