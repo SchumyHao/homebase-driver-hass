@@ -68,29 +68,29 @@ module.exports = function () {
     else if (domain === 'script')
       acc = hass_script.transform(entity_state);
     else
-      console.error("%s DOMAIN is not supported yet.", domain);
+      console.error(`${domain} DOMAIN is not supported yet.`);
 
     if ((acc.actions) && (Object.keys(acc.actions).length > 0)) {
       if (entity_state.attributes.rhass_type) {
         acc.deviceInfo.origin_type = acc.type;
         acc.type = entity_state.attributes.rhass_type;
-        console.log("Change %s type to %s.", entity_id, acc.type);
+        console.log(`Change ${entity_id} type to ${acc.type}.`);
       }
       if (entity_state.attributes.rhass_name) {
         acc.deviceInfo.origin_name = acc.name;
         acc.name = entity_state.attributes.rhass_name;
-        console.log("Change %s name to %s.", entity_id, acc.name);
+        console.log(`Change ${entity_id} name to ${acc.name}.`);
       }
       if (entity_state.attributes.rhass_room) {
         acc.roomName = entity_state.attributes.rhass_room;
-        console.log("Add room name %s to %s.", acc.name, entity_id);
+        console.log(`Add room name ${acc.name} to ${entity_id}.`);
       }
       if (entity_state.state === 'unavailable') {
         acc.offline = true;
-        console.log("%s is offline.", entity_id);
+        console.log(`${entity_id} is offline.`);
       }
       accessories.push(acc);
-      console.log("Add %s to homebase.", entity_id);
+      console.log(`Add ${entity_id} to homebase.`);
     }
   }
 
@@ -113,7 +113,7 @@ module.exports = function () {
       }
 
       if (hidden)
-        console.log("%s is hidden in hass", entity_id);
+        console.log(`${entity_id} is hidden in hass`);
       else
         add_hass_entity(entity_state, version);
     });
@@ -128,7 +128,7 @@ module.exports = function () {
   }
 
   function accessory_execute(accessory, action, hass) {
-    console.log("%s excute with action: ", accessory.deviceId, action);
+    console.log(`${accessory.deviceId} excute with action: ${JSON.stringify(action)}`);
     var type = accessory.deviceInfo.origin_type || accessory.type;
     if (type === 'ac') {
       console.log("Execute hass_climate.");
@@ -222,7 +222,7 @@ module.exports = function () {
       console.log("Get hass_script states.")
       return hass_script.get(hass, accessory.deviceInfo);
     } else {
-      console.error("%s type is not supported yet.", type);
+      console.error(`${type} type is not supported yet.`);
       return Promise.reject(new Error("not support"));
     }
   }
@@ -243,17 +243,15 @@ module.exports = function () {
           return hass.list()
         })
         .then(entities_state => {
-          console.log("Dump hass eneities states:")
           if (entities_state === "404: Not Found")
             throw new Error(entities_state);
-          console.log(entities_state);
+          console.log(`Dump hass eneities states: ${JSON.stringify(entities_state)}`);
           transform_hass_entities(entities_state, hass.version);
-          console.log("Dump accessories:")
-          console.log(accessories);
+          console.log(`Dump accessories: ${accessories}`);
           return accessories;
         })
         .catch(err => {
-          console.error("Get hass entities states error: %s", err);
+          console.error(`Get hass entities states error: ${err}`);
         })
     },
 
@@ -321,7 +319,7 @@ module.exports = function () {
               return ret;
             })
             .catch(err => {
-              console.error("Excute %s error: %s", action.property, err);
+              console.error(`Excute ${action.property} error: ${err}`);
             })
           })
     },
