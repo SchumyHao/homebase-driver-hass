@@ -8,12 +8,29 @@
   <link rel="stylesheet" href="//s.rokidcdn.com/homebase/upload/rJ_Hu5JrS.css" />
   <script src="https://unpkg.com/home-assistant-js-websocket@3.0.0/dist/haws.umd.js"></script>
   <title>HASS login</title>
+  <style>
+    #fgPass {
+      display: none
+    }
+
+    #fgLongToken {
+      display: none
+    }
+
+    .type-longLiveToken #fgLongToken {
+      display: block
+    }
+
+    .type-password #fgPass {
+      display: block
+    }
+  </style>
 
 </head>
 
 <body>
   <div class="container">
-    <form class="needs-validation" novalidate>
+    <form class="needs-validation d-nono" novalidate>
       <h1>HASS 绑定</h1>
       <div class="form-group">
         <label for="url">HASS URL</label>
@@ -22,18 +39,27 @@
         <small id="emailHelp" class="form-text text-muted">HASS访问地址</small>
       </div>
       <div id="authTypeToggle" class="form-group mb-2" role="group" data-toggle="buttons" aria-label="Basic example">
-        <label class="d-block">
-          <input type="radio" name="authType" id="radioToken" value="token" autocomplete="on" checked> 使用Token
-        </label>
+          <label class="d-block">
+              <input type="radio" name="authType" id="radioOAuth" value="oauth" autocomplete="off" checked> 登录获取长期访问令牌
+            </label>
         <label class="d-block">
           <input type="radio" name="authType" id="radioPassword" value="password" autocomplete="off"> 使用密码
         </label>
+        <label class="d-block">
+          <input type="radio" name="authType" id="radioLongLivedToken" value="longLiveToken" autocomplete="off">
+          直接输入长期访问令牌
+        </label>
+
       </div>
-      <div class="form-group d-none" id="fgPass">
-        <input type="text" class="form-control" id="inputPassword" placeholder="PassWord">
+      <div class="form-group" id="fgLongToken">
+        <input type="text" class="form-control" autocompleate="off" id="inputLongLivetoken" placeholder="输入长期访问令牌">
+        <small class="form-text text-muted">你可以在 HASS 的 Profile 页面生成长期访问令牌</small>
+      </div>
+      <div class="form-group" id="fgPass">
+        <input type="password" class="form-control" id="inputPassword" placeholder="输入访问密码">
       </div>
       <div class="form-group">
-        <button type="submit" class="btn btn-primary">去绑定</button>
+        <button type="submit" class="btn btn-primary">绑定</button>
       </div>
 
     </form>
@@ -44,7 +70,9 @@
       window.addEventListener('load', function () {
         const radios = document.querySelectorAll('input[name="authType"][type=radio]')
         const theForm = document.querySelector('form')
-        var authType
+        const elUrl = document.querySelector('#url')
+        var authType = null
+
         radios.forEach(el => {
           el.parentElement.addEventListener('click', function (ev) {
             setTimeout(function () {
@@ -52,11 +80,20 @@
             }, 100)
           })
         })
+
         function updateValidate() {
+          let otherTypes = []
           radios.forEach(elem => {
             if (elem.checked) {
               authType = elem.value
+            } else {
+              otherTypes.push(elem.value)
             }
+          })
+
+          theForm.classList.add('type-' + authType)
+          otherTypes.forEach(type => {
+            theForm.classList.remove('type-' + type)
           })
 
           if (authType === 'password') {
@@ -70,10 +107,14 @@
 
         updateValidate()
 
+        var hassURL = localStorage.getItem('hassURL')
 
-        
+        if (hassURL) {
+          elUrl.value = hassURL
+        }
+
         function errorAuth(err) {
-          console.error('errorAuth', err)
+          theForm.classList.remove('d-nono')
         }
 
         const query = location.search.substr(1).split('&').reduce(function (o, pair) {
@@ -84,25 +125,43 @@
           return o
         }, {})
 
+        const callbackURL = query.__cb || query.callbackURL 
+
         const options = {}
 
-        function callback(authObj, callbackURL) {
+        function callback(authObj) {
           if (!callbackURL) {
-            callbackURL = localStorage.getItem('redirect')
+            alert('参数不全： 没有 callback， 请返回重试')
+            return
           }
-          if (!callbackURL) {
-            alert('error 101')
+          if (!authObj.hassUrl) {
+            alert('参数不全：没有 hass url， 请返回重试')
             return
           }
           var isOAuth2 = authObj.type === 'oauth2'
+
           var objQuery = {
             userId: 'hass-' + authObj.type,
-            userToken: isOAuth2 ? authObj.access_token : authObj.password,
-            expiresIn: isOAuth2 ? authObj.expires_in : '',
-            refreshToken: isOAuth2 ? authObj.refresh_token : '',
+            userToken: '',
+            expiresIn: '',
+            refreshToken: '',
             ext1: authObj.hassUrl,
-            ext2: isOAuth2 ? authObj.clientId : '',
+            ext2: '',
             ext3: authObj.type
+          }
+          switch (authObj.type) {
+            case 'oauth2':
+              objQuery.userToken = authObj.access_token
+              objQuery.expiresIn = authObj.expires_in
+              objQuery.refreshToken = authObj.refresh_token
+              objQuery.ext2 = authObj.clientId
+              break;
+            case 'password':
+              objQuery.userToken = authObj.password
+              break;
+            case 'longLiveToken':
+              objQuery.userToken = authObj.longLiveToken
+              break;
           }
           var search = Object.keys(objQuery).reduce((s, key) => {
             s && (s += '&');
@@ -114,39 +173,59 @@
 
         function useAuth(auth) {
           history.replaceState(null, null, "/");
-          callback(Object.assign(auth.data, {
-            type: 'oauth2'
-          }))
+          HAWS.createConnection({ auth: auth })
+            .then(conn => {
+              return conn.sendMessagePromise({
+                "type": "auth/long_lived_access_token",
+                "client_name": "homebase" + Date.now(),
+                "client_icon": 'https://s.rokidcdn.com/homebase/upload/HkPKNjrnV.png',
+                "lifespan": 3650 // 10year
+              })
+            })
+            .then(token => {
+              callback({
+                type: 'longLiveToken',
+                hassUrl: hassURL,
+                longLiveToken: token
+              })
+            }, err => {
+              alert(err.message === 'Unknown error' ? '获取 Token 失败，你可以尝试先去 Hass Profile 页面删除已经创建的 Token' : err.message);
+            })
         }
 
-        HAWS.getAuth(options)
+        HAWS.getAuth()
           .then(useAuth, errorAuth)
 
         theForm.addEventListener('submit', function (event) {
           event.preventDefault();
           event.stopPropagation();
           theForm.classList.add('was-validated');
-          const elUrl = document.querySelector('#url')
           var hassUrl = elUrl.value;
+          localStorage.setItem('hassURL', hassUrl)
           if (theForm.checkValidity() === false) {
             alert('not valid')
           } else {
             const url = location.search
-            if (authType === 'token') {
+            if (authType === 'oauth') {
               var options = { hassUrl: hassUrl };
               if (hassUrl.substr(0, 5) == 'http:') {
-                options.gitredirectUrl = "http://" + location.host + location.pathname
-                options.redirectUrl = options.redirectUrl
+                options.clientId = "http://" + location.host;
+                options.redirectUrl = "http://" + location.host + location.pathname + '?__cb=' + encodeURIComponent(callbackURL)
               }
-              localStorage.setItem('redirect', query.callbackURL)
               HAWS.getAuth(options)
-                .then(useAuth, errorAuth);
+                .then(useAuth, errorAuth)
             } else if (authType === 'password') {
               callback({
                 type: 'password',
                 hassUrl: hassUrl,
                 password: document.querySelector('#inputPassword').value
-              }, query.callbackURL)
+              })
+            } else if (authType === 'longLiveToken') {
+              callback({
+                type: 'longLiveToken',
+                hassUrl: hassUrl,
+                longLiveToken: document.querySelector('#inputLongLivetoken').value
+              })
             }
           }
         }, false);
