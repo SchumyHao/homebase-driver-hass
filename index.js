@@ -33,6 +33,7 @@ module.exports = function () {
     if (v[0] - targetV[0] < 0) return false;
     if (v[1] - targetV[1] < 0) return false;
     if (v[2] - targetV[2] < 0) return false;
+    return true
   }
 
   function add_hass_entity(entity_state, version) {
@@ -247,7 +248,7 @@ module.exports = function () {
             throw new Error(entities_state);
           console.log(`Dump hass eneities states: ${JSON.stringify(entities_state)}`);
           transform_hass_entities(entities_state, hass.version);
-          console.log(`Dump accessories: ${accessories}`);
+          console.log(`Dump accessories: ${JSON.stringify(accessories)}`);
           return accessories;
         })
         .catch(err => {
