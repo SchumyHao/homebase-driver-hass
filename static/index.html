@@ -107,12 +107,6 @@
 
         updateValidate()
 
-        var hassURL = localStorage.getItem('hassURL')
-
-        if (hassURL) {
-          elUrl.value = hassURL
-        }
-
         function errorAuth(err) {
           theForm.classList.remove('d-nono')
         }
@@ -125,7 +119,12 @@
           return o
         }, {})
 
-        const callbackURL = query.__cb || query.callbackURL 
+        const callbackURL = query.__cb || query.callbackURL
+        var hassURL = query.hassURL || localStorage.getItem('hassURL') || null
+
+        if (hassURL) {
+          elUrl.value = hassURL
+        }
 
         const options = {}
 
@@ -134,7 +133,7 @@
             alert('参数不全： 没有 callback， 请返回重试')
             return
           }
-          if (!authObj.hassUrl) {
+          if (!hassURL) {
             alert('参数不全：没有 hass url， 请返回重试')
             return
           }
@@ -145,7 +144,7 @@
             userToken: '',
             expiresIn: '',
             refreshToken: '',
-            ext1: authObj.hassUrl,
+            ext1: hassURL,
             ext2: '',
             ext3: authObj.type
           }
@@ -185,7 +184,6 @@
             .then(token => {
               callback({
                 type: 'longLiveToken',
-                hassUrl: hassURL,
                 longLiveToken: token
               })
             }, err => {
@@ -200,30 +198,28 @@
           event.preventDefault();
           event.stopPropagation();
           theForm.classList.add('was-validated');
-          var hassUrl = elUrl.value;
-          localStorage.setItem('hassURL', hassUrl)
+          hassURL = elUrl.value;
+          localStorage.setItem('hassURL', hassURL)
           if (theForm.checkValidity() === false) {
             alert('not valid')
           } else {
             const url = location.search
             if (authType === 'oauth') {
-              var options = { hassUrl: hassUrl };
-              if (hassUrl.substr(0, 5) == 'http:') {
+              var options = { hassUrl: hassURL };
+              if (hassURL.substr(0, 5) == 'http:') {
                 options.clientId = "http://" + location.host;
-                options.redirectUrl = "http://" + location.host + location.pathname + '?__cb=' + encodeURIComponent(callbackURL)
+                options.redirectUrl = "http://" + location.host + location.pathname + '?__cb=' + encodeURIComponent(callbackURL) + '&hassURL=' + encodeURIComponent(hassURL)
               }
               HAWS.getAuth(options)
                 .then(useAuth, errorAuth)
             } else if (authType === 'password') {
               callback({
                 type: 'password',
-                hassUrl: hassUrl,
                 password: document.querySelector('#inputPassword').value
               })
             } else if (authType === 'longLiveToken') {
               callback({
                 type: 'longLiveToken',
-                hassUrl: hassUrl,
                 longLiveToken: document.querySelector('#inputLongLivetoken').value
               })
             }
