@@ -30,10 +30,13 @@ module.exports = function () {
     var v = version.split('.');
     targetV[2] = targetV[2] || '0';
     v[2] = v[2] || '0';
-    if (v[0] - targetV[0] < 0) return false;
-    if (v[1] - targetV[1] < 0) return false;
-    if (v[2] - targetV[2] < 0) return false;
-    return true
+    if (v[0] - targetV[0] > 0) return true;
+    else if (v[0] - targetV[0] < 0) return false;
+    if (v[1] - targetV[1] > 0) return true;
+    else if (v[1] - targetV[1] < 0) return false;
+    if (v[2] - targetV[2] > 0) return true;
+    else if (v[2] - targetV[2] < 0) return false;
+    return true;
   }
 
   function add_hass_entity(entity_state, version) {
@@ -42,7 +45,7 @@ module.exports = function () {
     var acc = {};
 
     if (domain === 'climate')
-      if (versionGE(version, '0.96'))
+      if (versionGE(version, '0.96.0'))
         acc = hass_climate.transform(entity_state);
       else
         acc = hass_climate_before_096.transform(entity_state);
@@ -239,6 +242,7 @@ module.exports = function () {
       return hass.info()
         .then(info => {
           hass.version = info.version;
+          console.log(`Hass version: ${hass.version}`)
         })
         .then(() => {
           return hass.list()
